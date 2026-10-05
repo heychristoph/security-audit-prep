@@ -1,0 +1,20 @@
+- id: rsk-1
+  ref: RSK-001
+  name: Admin account takeover
+  description: A leaked password gives an attacker admin access to production.
+  note: MFA on every admin account, checked in the quarterly access review. Residual risk is phishing of MFA codes.
+  treatment: MITIGATED
+  owner: Security owner
+  residual_score: 4
+  measures: [mfa]
+  updated_at: 2026-01-11T09:00:00Z
+- id: rsk-2
+  ref: RSK-002
+  name: Exploited vulnerable dependency
+  description: A known vulnerability in a dependency is exploited before it is fixed.
+  note: Code and dependency scanning on each pull request; fixes within the policy deadlines.
+  treatment: MITIGATED
+  owner: Security owner
+  residual_score: 4
+  measures: [scanning]
+  updated_at: 2026-01-11T09:00:00Z

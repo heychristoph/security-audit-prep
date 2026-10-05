@@ -1,0 +1,6 @@
+- id: cloud-project
+  name: Example Cloud
+  type: VIRTUAL
+  classification: Confidential. Customer data and backups.
+  owner: Security owner
+  vendors: [cloud]

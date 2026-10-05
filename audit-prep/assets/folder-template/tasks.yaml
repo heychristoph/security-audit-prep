@@ -1,0 +1,7 @@
+- id: access-review
+  name: Quarterly access review
+  state: TODO
+  priority: HIGH
+  recurring: true
+  assignee: Security owner
+  measure: mfa

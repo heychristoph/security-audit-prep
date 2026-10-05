@@ -1,0 +1,14 @@
+- id: mfa
+  name: MFA on every admin account
+  state: IMPLEMENTED
+  category: Access control
+  description: Every account with admin rights or customer-data access signs in with MFA. Evidence is the identity provider's per-user MFA export.
+  documents: [access-control-policy]
+  updated_at: 2026-01-10T09:00:00Z
+- id: scanning
+  name: Code and dependency scanning
+  state: IMPLEMENTED
+  category: Vulnerability management
+  description: Every repository is scanned on each pull request. Evidence is the scanner's repository list and finding history.
+  documents: [vulnerability-policy]
+  updated_at: 2026-01-10T09:00:00Z

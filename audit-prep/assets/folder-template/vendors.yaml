@@ -1,0 +1,7 @@
+- id: cloud
+  name: Example Cloud
+  category: CLOUD_PROVIDER
+  description: Hosting and database. Processor of customer data.
+  personal_data: true
+  dpa_file: true
+  dpa_url: https://example.com/dpa

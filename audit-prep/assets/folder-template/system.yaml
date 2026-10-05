@@ -1,0 +1,7 @@
+approved: false
+sections:
+  product: What the service does, for whom, and the commitments made to customers.
+  architecture: Components in scope, where they run, subservice organizations, and what is out of scope.
+  team: Who runs the system and their security roles.
+  processes: How changes, access, incidents, backups and vendors are handled.
+  customers: Controls customers are responsible for.

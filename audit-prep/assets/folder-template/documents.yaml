@@ -1,0 +1,16 @@
+- id: access-control-policy
+  title: Access Control Policy
+  type: POLICY
+  version: "1.0"
+  published_at: 2026-01-05T09:00:00Z
+  approved_by: Security owner
+  approved_at: 2026-01-05T10:00:00Z
+  signed_by: [Security owner]
+- id: vulnerability-policy
+  title: Vulnerability Management Policy
+  type: POLICY
+  version: "1.0"
+  published_at: 2026-01-05T09:00:00Z
+  approved_by: Security owner
+  approved_at: 2026-01-05T10:00:00Z
+  signed_by: [Security owner]

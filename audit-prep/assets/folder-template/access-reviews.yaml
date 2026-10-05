@@ -1,0 +1,6 @@
+- id: ar-1
+  name: First access review
+  status: COMPLETED
+  completed_at: 2026-01-12T09:00:00Z
+  entries:
+    - {email: security@example.com, name: Security owner, decision: APPROVED, note: "", is_admin: true, mfa: ENABLED}

@@ -1,0 +1,5 @@
+- id: customer-data
+  name: Customer data
+  classification: Confidential
+  owner: Security owner
+  vendors: [cloud]

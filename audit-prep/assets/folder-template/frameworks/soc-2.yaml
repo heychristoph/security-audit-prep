@@ -1,0 +1,20 @@
+id: soc-2
+name: SOC 2
+description: Trust Services Criteria. In scope Security, Availability and Confidentiality.
+controls:
+  - ref: CC6.1
+    name: Logical access security software, infrastructure and architectures
+    measures: [mfa]
+    documents: [access-control-policy]
+    applicable: true
+    justification: In scope (Security).
+  - ref: CC7.1
+    name: Detection and monitoring of configuration changes and vulnerabilities
+    measures: [scanning]
+    documents: [vulnerability-policy]
+    applicable: true
+    justification: In scope (Security).
+  - ref: PI1.1
+    name: Processing integrity objectives
+    applicable: false
+    justification: Processing Integrity is not in scope.

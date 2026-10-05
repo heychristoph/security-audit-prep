@@ -1,0 +1,30 @@
+# audit-prep configuration. Copy to prep.yaml next to where you run scripts/prep.py.
+# No secrets here: tokens come from the environment (see references/connectors/).
+
+platform: probo                     # probo, vanta, drata or folder
+options:
+  url: https://probo.example.com    # probo: instance root
+  organization_id: ""               # probo: from the console URL
+  # token_command: ""               # probo: command that prints the token, instead of PROBO_TOKEN
+  # api_url: ""                     # vanta or drata: regional API root
+  # workspace_id: ""                # drata: when the account has several workspaces
+  # path: records                   # folder: records folder, relative to this file
+
+# Real frameworks being prepared (names or ids). Default: all except "..., AI Audited" copies.
+frameworks: [SOC 2, GDPR]
+
+# The AI Audit runs on a copy of this framework: "<name> Criteria, AI Audited".
+ai_audit:
+  framework: SOC 2
+  # name: SOC 2 Criteria, AI Audited
+  firm: soc2-auditor                # text that marks an audit record as the AI Audit
+
+checks:
+  data_classes: [Public, Internal, Confidential, Secret]   # exactly the policy's classes
+  evidence_record_types: [RECORD, REGISTER, REPORT]        # documents that count as evidence
+  approval_types: [POLICY, PLAN]                           # documents that need approval
+  signature_types: [POLICY]                                # documents that need a signature
+  vendor_assets: true               # every vendor must be on the asset list
+  personal_data_vendors: []         # vendors that receive personal data, beyond those linked to data
+  no_dpa_needed: []                 # independent controllers, e.g. a bank
+  access_review_max_age_days: 100

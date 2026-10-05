@@ -1,0 +1,4 @@
+- id: owner
+  name: Security owner
+  email: security@example.com
+  state: ACTIVE
