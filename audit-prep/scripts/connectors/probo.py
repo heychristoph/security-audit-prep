@@ -3,7 +3,9 @@
 Reads go through the console GraphQL API: it returns links and counts in a few paginated
 queries, where the MCP needs one call per measure, control and document. Writes go through
 the published MCP tools. Evidence files go through the console mutation
-uploadMeasureEvidence, because the MCP has no upload tool.
+uploadInternalControlEvidence (uploadMeasureEvidence before v0.304), because the MCP has no
+upload tool. Probo v0.304 renamed measures to internal controls in GraphQL and MCP; the
+connector detects which names the instance uses.
 
 Options (prep.yaml `options`):
   url              instance root, e.g. https://probo.example.com
@@ -15,7 +17,7 @@ Environment:
 
 Known Probo behaviour (v0.297):
   - updateOrganizationContext replaces all five sections; a section left out is cleared.
-  - listRisks ordered by UPDATED_AT panics in the MCP; this connector does not use it.
+  - listRisks ordered by UPDATED_AT panics in the MCP before v0.303; this connector does not use it.
   - addControl rejects an empty description; the control name is used instead.
   - Signature and approval lists return a next_cursor on the last page, and following it
     fails. Single pages of 100 are read here.
@@ -89,6 +91,14 @@ class Platform(Connector):
                 return items
             after = conn["pageInfo"]["endCursor"]
 
+    def internal_controls(self) -> bool:
+        """Probo v0.304 renamed measures to internal controls in GraphQL and MCP. The
+        snapshot keeps calling them measures; only the API names differ."""
+        if not hasattr(self, "_internal_controls"):
+            found = self.gql('query { __type(name: "InternalControl") { name } }')["__type"]
+            self._internal_controls = found is not None
+        return self._internal_controls
+
     def ids(self, conn: dict | None, where: str) -> list[str]:
         conn = conn or {}
         if (conn.get("pageInfo") or {}).get("hasNextPage"):
@@ -156,6 +166,8 @@ class Platform(Connector):
             "tasks", "findings", "vendors", "assets", "data", "people",
         ])
         org = self.org
+        ic = self.internal_controls()
+        mf = "internalControls" if ic else "measures"
         top = self.gql(
             "query($id: ID!) { node(id: $id) { ... on Organization { name "
             "context { product architecture team processes customers } "
@@ -173,12 +185,12 @@ class Platform(Connector):
             snap["frameworks"].append({"id": f["id"], "name": f["name"], "description": f.get("description") or ""})
             for c in self.connection(f["id"], "Framework", "controls",
                                      "id sectionTitle name description bestPractice maturityLevel "
-                                     f"measures{LINKS} documents{LINKS}"):
+                                     f"{mf}{LINKS} documents{LINKS}"):
                 snap["controls"].append({
                     "id": c["id"], "framework_id": f["id"], "ref": c["sectionTitle"], "name": c["name"],
                     "description": c.get("description") or "", "best_practice": c.get("bestPractice"),
                     "maturity_level": c.get("maturityLevel"),
-                    "measure_ids": self.ids(c["measures"], f"control {c['sectionTitle']}"),
+                    "measure_ids": self.ids(c[mf], f"control {c['sectionTitle']}"),
                     "document_ids": self.ids(c["documents"], f"control {c['sectionTitle']}"),
                 })
 
@@ -190,7 +202,7 @@ class Platform(Connector):
                     "applicable": s["applicability"], "justification": s.get("justification") or "",
                 })
 
-        for m in self.connection(org, "Organization", "measures",
+        for m in self.connection(org, "Organization", mf,
                                  "id name description state category updatedAt evidences(first: 1) { totalCount } "
                                  f"documents{LINKS} risks{LINKS} tasks{LINKS}"):
             snap["measures"].append({
@@ -204,13 +216,13 @@ class Platform(Connector):
 
         for r in self.connection(org, "Organization", "risks",
                                  "id referenceId name description note treatment residualRiskScore updatedAt "
-                                 f"owner {{ fullName }} measures{LINKS}"):
+                                 f"owner {{ fullName }} {mf}{LINKS}"):
             snap["risks"].append({
                 "id": r["id"], "ref": r.get("referenceId") or "", "name": r["name"],
                 "description": r.get("description") or "", "note": r.get("note") or "",
                 "treatment": r.get("treatment"), "owner": (r.get("owner") or {}).get("fullName"),
                 "residual_score": r.get("residualRiskScore"),
-                "measure_ids": self.ids(r["measures"], f"risk {r.get('referenceId')}"),
+                "measure_ids": self.ids(r[mf], f"risk {r.get('referenceId')}"),
                 "updated_at": r["updatedAt"],
             })
 
@@ -251,12 +263,19 @@ class Platform(Connector):
                                    "vendor_ids": self.ids(a["thirdParties"], f"asset {a['name']}"),
                                    "updated_at": a.get("updatedAt")})
 
+        # A task links to one measure (before v0.304), one internal control (v0.304 to v0.306)
+        # or several internal controls (v0.307 on).
+        task_fields = {f["name"] for f in self.gql('query { __type(name: "Task") { fields { name } } }')["__type"]["fields"]}
+        task_link = next(f for f in ("internalControls", "internalControl", "measure") if f in task_fields)
         for t in self.connection(org, "Organization", "tasks",
-                                 "id name state priority deadline recurrenceInterval assignedTo { fullName } measure { id }"):
+                                 "id name state priority deadline recurrenceInterval assignedTo { fullName } "
+                                 + (f"{task_link}{LINKS}" if task_link == "internalControls" else f"{task_link} {{ id }}")):
+            measure_ids = self.ids(t[task_link], f"task {t['name']}") if task_link == "internalControls" \
+                else [m["id"] for m in [t.get(task_link)] if m]
             snap["tasks"].append({"id": t["id"], "name": t["name"], "state": t["state"], "priority": t.get("priority"),
                                   "deadline": t.get("deadline"), "recurring": bool(t.get("recurrenceInterval")),
                                   "assignee": (t.get("assignedTo") or {}).get("fullName"),
-                                  "measure_id": (t.get("measure") or {}).get("id")})
+                                  "measure_id": measure_ids[0] if measure_ids else None})
 
         for f in self.connection(org, "Organization", "findings",
                                  "id referenceId kind status priority dueDate description updatedAt owner { fullName } risk { id }"):
@@ -363,10 +382,12 @@ class Platform(Connector):
                                          name=name, firm=firm, state=state))
 
     def upload_evidence(self, measure_id: str, path: Path) -> str:
+        mutation, key = (("uploadInternalControlEvidence", "internalControlId") if self.internal_controls()
+                         else ("uploadMeasureEvidence", "measureId"))
         operations = {
-            "query": "mutation($input: UploadMeasureEvidenceInput!) { uploadMeasureEvidence(input: $input) "
+            "query": f"mutation($input: {mutation[0].upper()}{mutation[1:]}Input!) {{ {mutation}(input: $input) "
                      "{ evidenceEdge { node { id state } } } }",
-            "variables": {"input": {"measureId": measure_id, "file": None}},
+            "variables": {"input": {key: measure_id, "file": None}},
         }
         out = http_multipart(
             f"{self.base}/api/console/v1/graphql",
@@ -375,7 +396,7 @@ class Platform(Connector):
         )
         if out.get("errors"):
             raise PrepError("Probo upload failed: " + json.dumps(out["errors"])[:400])
-        return out["data"]["uploadMeasureEvidence"]["evidenceEdge"]["node"]["id"]
+        return out["data"][mutation]["evidenceEdge"]["node"]["id"]
 
 
 def _version_key(v: dict) -> tuple:

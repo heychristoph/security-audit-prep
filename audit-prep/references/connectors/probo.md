@@ -1,8 +1,14 @@
 # Probo
 
 Reads use the console GraphQL API (`/api/console/v1/graphql`), writes use the MCP tools
-(`/api/mcp/v1`), and evidence uploads use the console mutation `uploadMeasureEvidence`.
-The same OAuth token works for all three. Tested against Probo v0.297 (self-hosted).
+(`/api/mcp/v1`), and evidence uploads use the console mutation `uploadInternalControlEvidence`.
+The same OAuth token works for all three. Tested against Probo v0.297 and v0.309 (self-hosted).
+
+Probo v0.304 renamed measures to "internal controls" in GraphQL, MCP and the CLI: the MCP
+tools are `getInternalControl`, `listInternalControlEvidences` and so on, and before v0.304
+they were `getMeasure`, `listMeasureEvidences`, and the upload was `uploadMeasureEvidence`.
+The connector detects which names the instance uses, including the v0.304 to v0.306 releases
+where a task links to one internal control. This skill still says "measure".
 
 ## Setup
 
@@ -40,7 +46,7 @@ options:
 | Action | How |
 |---|---|
 | AI framework, controls, links, scope decisions, audit record | MCP: `addFramework`, `addControl`, `linkControl`, `unlinkControl`, `addApplicabilityStatement`, `updateApplicabilityStatement`, `addAudit` |
-| Evidence file | console multipart `uploadMeasureEvidence` (`prep.py evidence`) |
+| Evidence file | console multipart `uploadInternalControlEvidence` (`uploadMeasureEvidence` before v0.304) (`prep.py evidence`) |
 | Everything else (measures, risks, vendors, documents, tasks) | the Probo MCP tools directly, as the workflow needs |
 
 ## Traps
