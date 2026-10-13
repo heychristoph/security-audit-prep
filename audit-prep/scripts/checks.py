@@ -220,8 +220,8 @@ def vendors(ctx: Ctx):
         if (v.get("personal_data") or v["name"].lower() in named) and not (v.get("dpa_file") or v.get("dpa_url")) \
                 and not controller and v["name"].lower() not in exempt:
             ctx.add("error", "VENDOR_NO_DPA", label,
-                    "Receives personal data but has no DPA on its record. Attach the DPA (signed, or the vendor's published "
-                    "terms), or stop the data flow; "
+                    "Receives personal data but has no DPA on its record. Attach the DPA (signed, or the DPA the vendor "
+                    "publishes in the terms you accepted), or stop the data flow; "
                     "until then write the open exception on the linked risk, not only in a task. If it is an independent "
                     "controller, say so in its description, or list it under checks.no_dpa_needed.")
         if ctx.opt["vendor_assets"] and "assets" in ctx.snap["capabilities"] \

@@ -83,8 +83,8 @@ SKILL.md, a check code from `prep.py check`, or a reference page.
   `CREATED_AT` or `NAME` (the connector reads risks through GraphQL instead).
 - The MCP has no file upload. The console API mutation `uploadInternalControlEvidence`
   (`uploadMeasureEvidence` before v0.304) does it.
-- `listInternalControlEvidences` (`listMeasureEvidences` before v0.304) leaves `url` empty for files. The console API returns
-  `file.downloadUrl`.
+- `listInternalControlEvidences` (`listMeasureEvidences` before v0.304) leaves `url` empty
+  for files. The console API returns `file.downloadUrl`.
 - `addControl` rejects an empty description.
 - Approval and signature lists return a `next_cursor` on the last page. Following it fails.
 - Probo's built-in vendor vetting runs an LLM orchestrator with up to 16 sub-agents on the

@@ -2,12 +2,13 @@
 
 Reads use the console GraphQL API (`/api/console/v1/graphql`), writes use the MCP tools
 (`/api/mcp/v1`), and evidence uploads use the console mutation `uploadInternalControlEvidence`.
-The same OAuth token works for all three. Tested against Probo v0.297 (self-hosted).
+The same OAuth token works for all three. Tested against Probo v0.297 and v0.309 (self-hosted).
 
 Probo v0.304 renamed measures to "internal controls" in GraphQL, MCP and the CLI: the MCP
 tools are `getInternalControl`, `listInternalControlEvidences` and so on, and before v0.304
 they were `getMeasure`, `listMeasureEvidences`, and the upload was `uploadMeasureEvidence`.
-The connector detects which names the instance uses. This skill still says "measure".
+The connector detects which names the instance uses, including the v0.304 to v0.306 releases
+where a task links to one internal control. This skill still says "measure".
 
 ## Setup
 

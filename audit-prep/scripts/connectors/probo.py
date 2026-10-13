@@ -263,11 +263,15 @@ class Platform(Connector):
                                    "vendor_ids": self.ids(a["thirdParties"], f"asset {a['name']}"),
                                    "updated_at": a.get("updatedAt")})
 
+        # A task links to one measure (before v0.304), one internal control (v0.304 to v0.306)
+        # or several internal controls (v0.307 on).
+        task_fields = {f["name"] for f in self.gql('query { __type(name: "Task") { fields { name } } }')["__type"]["fields"]}
+        task_link = next(f for f in ("internalControls", "internalControl", "measure") if f in task_fields)
         for t in self.connection(org, "Organization", "tasks",
                                  "id name state priority deadline recurrenceInterval assignedTo { fullName } "
-                                 + (f"internalControls{LINKS}" if ic else "measure { id }")):
-            measure_ids = self.ids(t["internalControls"], f"task {t['name']}") if ic \
-                else [m["id"] for m in [t.get("measure")] if m]
+                                 + (f"{task_link}{LINKS}" if task_link == "internalControls" else f"{task_link} {{ id }}")):
+            measure_ids = self.ids(t[task_link], f"task {t['name']}") if task_link == "internalControls" \
+                else [m["id"] for m in [t.get(task_link)] if m]
             snap["tasks"].append({"id": t["id"], "name": t["name"], "state": t["state"], "priority": t.get("priority"),
                                   "deadline": t.get("deadline"), "recurring": bool(t.get("recurrenceInterval")),
                                   "assignee": (t.get("assignedTo") or {}).get("fullName"),
