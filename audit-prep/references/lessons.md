@@ -33,7 +33,7 @@ SKILL.md, a check code from `prep.py check`, or a reference page.
 | What happened | What to do instead | Guard |
 |---|---|---|
 | A restore test was run, the task marked done and the measure implemented, with comments only. Then 12 more implemented measures turned out to have no evidence. | Attach evidence in the same turn as the state change, then confirm it is there. | Rule 2; `EVIDENCE_NONE`; `prep.py evidence` |
-| The agent said it could not upload files. The platform's console API could. | Read the connector page: Probo uploads go through `uploadMeasureEvidence`. | [connectors/probo.md](connectors/probo.md) |
+| The agent said it could not upload files. The platform's console API could. | Read the connector page: Probo uploads go through `uploadInternalControlEvidence` (`uploadMeasureEvidence` before v0.304). | [connectors/probo.md](connectors/probo.md) |
 | Registers (risks, processing activities, vendors) existed but were never published, so the auditor had no dated copy. | Publish each register and link it to its measure. | `REGISTER_NOT_PUBLISHED`, `REGISTER_STALE` |
 | No policy was linked to any control, and 17 measures had none. | Link each control to the policies behind its measures, in every framework. | `CONTROL_NO_POLICY` |
 | A required-check name was offered as proof that CI runs lint and tests. A deploy design was offered as proof that every deploy follows it. | Give the workflow file and its run results, and the complete deploy history. | [evidence.md](evidence.md) |
@@ -79,10 +79,11 @@ SKILL.md, a check code from `prep.py check`, or a reference page.
 ## Platform traps (Probo v0.297)
 
 - `updateOrganizationContext` replaces all five sections. A section left out is cleared.
-- `listRisks` ordered by `UPDATED_AT` crashes the MCP call. Order by `CREATED_AT` or
-  `NAME` (the connector reads risks through GraphQL instead).
-- The MCP has no file upload. The console API mutation `uploadMeasureEvidence` does it.
-- `listMeasureEvidences` leaves `url` empty for files. The console API returns
+- Before v0.303, `listRisks` ordered by `UPDATED_AT` crashes the MCP call. Order by
+  `CREATED_AT` or `NAME` (the connector reads risks through GraphQL instead).
+- The MCP has no file upload. The console API mutation `uploadInternalControlEvidence`
+  (`uploadMeasureEvidence` before v0.304) does it.
+- `listInternalControlEvidences` (`listMeasureEvidences` before v0.304) leaves `url` empty for files. The console API returns
   `file.downloadUrl`.
 - `addControl` rejects an empty description.
 - Approval and signature lists return a `next_cursor` on the last page. Following it fails.
